@@ -13,6 +13,7 @@ import {
   PencilIcon,
   Checkbox,
   SearchIcon,
+  WithDesignSystemThemeHoc,
 } from '@databricks/design-system';
 import { Link, withRouter } from 'react-router-dom';
 import { experimentListSearchInput, searchExperimentsApi } from '../actions';
@@ -42,6 +43,7 @@ export class ExperimentListView extends Component {
     previousSearchInput: PropTypes.string.isRequired,
     nextPageToken: PropTypes.string,
     loadingMore: PropTypes.bool.isRequired,
+    designSystemThemeApi: PropTypes.shape({ theme: PropTypes.object }).isRequired,
   };
 
   state = {
@@ -181,13 +183,17 @@ export class ExperimentListView extends Component {
   };
 
   renderListItem = (item) => {
-    const { activeExperimentIds } = this.props;
+    const { activeExperimentIds, designSystemThemeApi } = this.props;
+    const { theme } = designSystemThemeApi;
     const { checkedKeys } = this.state;
     const isActive = activeExperimentIds.includes(item.experiment_id);
     const dataTestId = isActive ? 'active-experiment-list-item' : 'experiment-list-item';
 
     return (
-      <div style={classNames.experimentListItemContainer} data-test-id={dataTestId}>
+      <div
+        css={classNames.getExperimentListItemContainer(isActive, theme)}
+        data-test-id={dataTestId}
+      >
         <List.Item
           key={item.experiment_id}
           bordered='false'
@@ -203,7 +209,6 @@ export class ExperimentListView extends Component {
             <Link
               className={'experiment-link'}
               to={Routes.getExperimentPageRoute(item.experiment_id)}
-              style={classNames.experimentLink}
               data-test-id='experiment-list-item-link'
             >
               {item.name}
@@ -212,6 +217,7 @@ export class ExperimentListView extends Component {
               icon={<PencilIcon />}
               onClick={this.handleRenameExperiment(item.experiment_id, item.name)}
               data-test-id='rename-experiment-button'
+              css={classNames.renameExperiment}
             />,
             <IconButton
               icon={<i className='far fa-trash-o' />}
@@ -228,6 +234,7 @@ export class ExperimentListView extends Component {
   render() {
     const { activeExperimentIds, experiments, searchInput, loadingMore } = this.props;
     const { hidden, innerHeight } = this.state;
+
     if (hidden) {
       return (
         <CaretDownSquareIcon
@@ -259,7 +266,7 @@ export class ExperimentListView extends Component {
           experimentName={this.state.selectedExperimentName}
         />
         <div>
-          <div style={classNames.experimentTitleContainer}>
+          <div css={classNames.experimentTitleContainer}>
             <Typography.Title level={2} css={classNames.experimentTitle}>
               Experiments
             </Typography.Title>
@@ -279,7 +286,7 @@ export class ExperimentListView extends Component {
               title='Hide experiment list'
             />
           </div>
-          <div style={classNames.experimentSearchContainer}>
+          <div css={classNames.experimentSearchContainer}>
             <Input
               placeholder='Search Experiments'
               aria-label='search experiments'
@@ -295,19 +302,19 @@ export class ExperimentListView extends Component {
               css={classNames.experimentSearchIcon}
             />
           </div>
-          <div id='scrollableDiv' css={classNames.experimentListContainer}>
-            <List split={false} loading={{ indicator: <Spinner />, spinning: loadingMore }}>
-              <VirtualList
-                data={experiments}
-                itemHeight={10}
-                height={innerHeight}
-                itemKey='experiment_id'
-                onScroll={this.debouncedOnScroll}
-              >
-                {(item) => this.renderListItem(item)}
-              </VirtualList>
-            </List>
-          </div>
+          <List split={false} loading={{ indicator: <Spinner />, spinning: loadingMore }}>
+            <VirtualList
+              data={experiments}
+              itemHeight={10}
+              height={innerHeight}
+              itemKey='experiment_id'
+              onScroll={this.debouncedOnScroll}
+              virtual
+              css={classNames.experimentListContainer}
+            >
+              {(item) => this.renderListItem(item)}
+            </VirtualList>
+          </List>
         </div>
       </div>
     );
@@ -319,9 +326,12 @@ const classNames = {
     boxSizing: 'border-box',
     marginLeft: '24px',
     marginRight: '8px',
-    // TODO getting the right width here is hard with the link
-    minWidth: '200px',
-    maxWidth: '400px',
+    paddingRight: '16px',
+    width: '100%',
+    // Ensure it displays experiment names for smaller screens, but don't
+    // take more than 20% of the screen.
+    minWidth: 'max(200px, 20vw)',
+    maxWidth: '20vw',
   },
   experimentTitleContainer: {
     display: 'flex',
@@ -348,44 +358,45 @@ const classNames = {
     flex: '1 1 0',
   },
   experimentListContainer: {
-    overflowX: 'hidden',
-    marginTop: '8px',
+    marginTop: '12px',
     // Makes the scrollbar stay showing
     '.rc-virtual-list-scrollbar-show': {
       display: 'block !important',
       background: 'rgba(0, 0, 0, 0.5)',
     },
   },
-  experimentListItemContainer: {
+  getExperimentListItemContainer: (isActive, theme) => ({
     display: 'flex',
-    marginLeft: '0px',
+    marginLeft: '1px',
     marginTop: '0px',
     marginBotom: '0px',
     marginRight: '5px',
     paddingRight: '5px',
-  },
+    borderLeft: isActive ? `solid ${theme.colors.primary}` : 'transparent',
+    backgroundColor: isActive ? theme.colors.actionDefaultBackgroundPress : 'transparent',
+  }),
   experimentListItem: {
-    display: 'flex',
+    display: 'grid',
     '.experiment-list-meta-item-action': {
-      display: 'flex',
-      paddingLeft: '0px',
+      display: 'grid',
+      gridTemplateColumns: 'auto 1fr auto auto',
+      paddingLeft: '4px',
       li: {
         paddingRight: '4px',
-        display: 'flex',
-        maxWidth: '60%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        textAlign: 'left',
+        fontSize: '13px',
       },
     },
   },
-  experimentLink: {
-    display: 'block',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    maxWidth: '180px',
-    whiteSpace: 'nowrap',
-    textAlign: 'left',
+  renameExperiment: {
+    justifySelf: 'end',
   },
   // Use a larger margin to avoid overlapping the vertical scrollbar
   deleteExperiment: {
+    justifySelf: 'end',
     marginRight: '10px',
   },
 };
@@ -397,8 +408,6 @@ const mapStateToProps = (state) => {
   const lowerCasedSearchInput = searchInput.toLowerCase();
   const loadingMore = getLoadingMoreExperiments(state);
   let experiments = [];
-  // TODO should this still be a thing or should this only work from a "real"
-  // search, not directly in the ui i.e. the onChange event of the input
   if (lowerCasedSearchInput !== '') {
     experiments = allExperiments.filter(({ name }) =>
       name.toLowerCase().includes(lowerCasedSearchInput),
@@ -421,4 +430,6 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ExperimentListView));
+export default withRouter(
+  connect(mapStateToProps, mapDispatchToProps)(WithDesignSystemThemeHoc(ExperimentListView)),
+);
