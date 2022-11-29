@@ -185,7 +185,6 @@ export class ExperimentListView extends Component {
   renderListItem = (item) => {
     const { activeExperimentIds, designSystemThemeApi } = this.props;
     const { theme } = designSystemThemeApi;
-    const { checkedKeys } = this.state;
     const isActive = activeExperimentIds.includes(item.experiment_id);
     const dataTestId = isActive ? 'active-experiment-list-item' : 'experiment-list-item';
 
@@ -204,7 +203,8 @@ export class ExperimentListView extends Component {
               id={item.experiment_id}
               key={item.experiment_id}
               onChange={(e) => this.handleCheck(e, item.experiment_id)}
-              checked={checkedKeys.includes(item.experiment_id)}
+              checked={isActive}
+              data-test-id='experiment-list-item-check-box'
             ></Checkbox>,
             <Link
               className={'experiment-link'}
