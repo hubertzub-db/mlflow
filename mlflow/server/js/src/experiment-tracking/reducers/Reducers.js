@@ -24,7 +24,7 @@ import {
   maxMetricsByRunUuid,
 } from './MetricReducer';
 import modelRegistryReducers from '../../model-registry/reducers';
-import _, { isArray } from 'lodash';
+import _, { isArray, orderBy } from 'lodash';
 import {
   fulfilled,
   pending,
@@ -46,7 +46,11 @@ export const getExperimentListPreviousSearchInput = (state) => {
 };
 
 export const getExperiments = (state) => {
-  return Object.values(state.entities.experimentsById);
+  // Order matters since we are appending
+  // the int keys will not allow mapping in the same order items were added.
+  const unOrdered = Object.values(state.entities.experimentsById);
+  const ordered = orderBy(unOrdered, ['creation_time', 'experiment_id'], ['desc', 'asc']);
+  return ordered;
 };
 
 export const getExperiment = (id, state) => {

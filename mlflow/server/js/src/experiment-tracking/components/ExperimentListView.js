@@ -170,6 +170,7 @@ export class ExperimentListView extends Component {
       this.props.history.push(route);
     }
   };
+
   handleCheck = (e, key) => {
     this.setState(
       (prevState) => ({
@@ -184,10 +185,14 @@ export class ExperimentListView extends Component {
 
   renderListItem = (item) => {
     const { activeExperimentIds, designSystemThemeApi } = this.props;
+    const { checkedKeys } = this.state;
     const { theme } = designSystemThemeApi;
     const isActive = activeExperimentIds.includes(item.experiment_id);
+    const isChecked = checkedKeys.includes(item.experiment_id);
     const dataTestId = isActive ? 'active-experiment-list-item' : 'experiment-list-item';
 
+    // Clicking the link removes all checks and marks other experiments
+    // as not active.
     return (
       <div
         css={classNames.getExperimentListItemContainer(isActive, theme)}
@@ -203,12 +208,13 @@ export class ExperimentListView extends Component {
               id={item.experiment_id}
               key={item.experiment_id}
               onChange={(e) => this.handleCheck(e, item.experiment_id)}
-              checked={isActive}
+              checked={isChecked}
               data-test-id='experiment-list-item-check-box'
             ></Checkbox>,
             <Link
               className={'experiment-link'}
               to={Routes.getExperimentPageRoute(item.experiment_id)}
+              onClick={(e) => this.setState({ checkedKeys: [] })}
               data-test-id='experiment-list-item-link'
             >
               {item.name}
@@ -377,6 +383,8 @@ const classNames = {
   }),
   experimentListItem: {
     display: 'grid',
+    // Make the items line up
+    width: '100%',
     '.experiment-list-meta-item-action': {
       display: 'grid',
       gridTemplateColumns: 'auto 1fr auto auto',
