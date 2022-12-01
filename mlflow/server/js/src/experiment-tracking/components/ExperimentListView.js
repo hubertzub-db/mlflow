@@ -208,13 +208,15 @@ export class ExperimentListView extends Component {
               id={item.experiment_id}
               key={item.experiment_id}
               onChange={(e) => this.handleCheck(e, item.experiment_id)}
-              checked={isChecked}
+              checked={isChecked || isActive}
               data-test-id='experiment-list-item-check-box'
             ></Checkbox>,
             <Link
               className={'experiment-link'}
               to={Routes.getExperimentPageRoute(item.experiment_id)}
-              onClick={(e) => this.setState({ checkedKeys: [] })}
+              onClick={(e) => {
+                this.setState({ checkedKeys: [item.experiment_id] });
+              }}
               title={item.name}
               data-test-id='experiment-list-item-link'
             >
