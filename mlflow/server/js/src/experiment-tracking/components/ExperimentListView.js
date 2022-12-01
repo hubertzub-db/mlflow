@@ -215,6 +215,7 @@ export class ExperimentListView extends Component {
               className={'experiment-link'}
               to={Routes.getExperimentPageRoute(item.experiment_id)}
               onClick={(e) => this.setState({ checkedKeys: [] })}
+              title={item.name}
               data-test-id='experiment-list-item-link'
             >
               {item.name}
