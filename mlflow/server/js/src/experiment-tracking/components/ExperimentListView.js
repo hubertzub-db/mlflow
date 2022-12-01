@@ -336,7 +336,7 @@ const classNames = {
     width: '100%',
     // Ensure it displays experiment names for smaller screens, but don't
     // take more than 20% of the screen.
-    minWidth: 'max(200px, 20vw)',
+    minWidth: 'max(280px, 20vw)',
     maxWidth: '20vw',
   },
   experimentTitleContainer: {
@@ -374,9 +374,7 @@ const classNames = {
   getExperimentListItemContainer: (isActive, theme) => ({
     display: 'flex',
     marginLeft: '1px',
-    marginTop: '0px',
-    marginBotom: '0px',
-    marginRight: '5px',
+    marginRight: '8px',
     paddingRight: '5px',
     borderLeft: isActive ? `solid ${theme.colors.primary}` : 'transparent',
     backgroundColor: isActive ? theme.colors.actionDefaultBackgroundPress : 'transparent',
@@ -388,9 +386,12 @@ const classNames = {
     '.experiment-list-meta-item-action': {
       display: 'grid',
       gridTemplateColumns: 'auto 1fr auto auto',
-      paddingLeft: '4px',
+      paddingLeft: '0px',
+      marginBottom: '4px',
+      marginTop: '4px',
       li: {
         paddingRight: '4px',
+        paddingLeft: '4px',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
