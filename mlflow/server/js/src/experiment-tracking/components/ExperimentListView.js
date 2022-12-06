@@ -2,9 +2,12 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { debounce } from 'lodash';
+import 'react-virtualized/styles.css';
+
+import { List as VList, AutoSizer, InfiniteLoader } from 'react-virtualized';
 
 import { List } from 'antd';
-import VirtualList from 'rc-virtual-list';
+// import VirtualList from 'rc-virtual-list';
 import {
   Input,
   Typography,
@@ -81,7 +84,11 @@ export class ExperimentListView extends Component {
     this.props.dispatchSearchInput(event.target.value);
   };
 
-  handleLoadMore = (event) => {
+  handleLoadMore = ({ stopIndex }) => {
+    const isScrolledToLastItem = stopIndex >= this.props.experiments.length;
+    if (!isScrolledToLastItem) {
+      return;
+    }
     let params = {};
     const currentInput = this.props.searchInput;
     const previousInput = this.props.previousSearchInput;
@@ -183,7 +190,8 @@ export class ExperimentListView extends Component {
     );
   };
 
-  renderListItem = (item) => {
+  renderListItem = ({ index, key, style }) => {
+    const item = this.props.experiments[index];
     const { activeExperimentIds, designSystemThemeApi } = this.props;
     const { checkedKeys } = this.state;
     const { theme } = designSystemThemeApi;
@@ -197,6 +205,8 @@ export class ExperimentListView extends Component {
       <div
         css={classNames.getExperimentListItemContainer(isActive, theme)}
         data-test-id={dataTestId}
+        key={key}
+        style={style}
       >
         <List.Item
           key={item.experiment_id}
@@ -241,7 +251,8 @@ export class ExperimentListView extends Component {
   };
 
   render() {
-    const { activeExperimentIds, experiments, searchInput, loadingMore } = this.props;
+    const { activeExperimentIds, experiments, searchInput, loadingMore, designSystemThemeApi } =
+      this.props;
     const { hidden, innerHeight } = this.state;
 
     if (hidden) {
@@ -274,56 +285,66 @@ export class ExperimentListView extends Component {
           experimentId={this.state.selectedExperimentId}
           experimentName={this.state.selectedExperimentName}
         />
+        <div css={classNames.experimentTitleContainer}>
+          <Typography.Title level={2} css={classNames.experimentTitle}>
+            Experiments
+          </Typography.Title>
+          <PlusCircleBorderIcon
+            onClick={this.handleCreateExperiment}
+            css={{
+              fontSize: '24px',
+              marginLeft: 'auto',
+            }}
+            title='New Experiment'
+            data-test-id='create-experiment-button'
+          />
+          <CaretDownSquareIcon
+            onClick={() => this.setState({ hidden: true })}
+            rotate={90}
+            css={{ fontSize: '24px' }}
+            title='Hide experiment list'
+          />
+        </div>
+        <div css={classNames.experimentSearchContainer}>
+          <Input
+            placeholder='Search Experiments'
+            aria-label='search experiments'
+            value={searchInput}
+            onChange={this.handleSearchInputChange}
+            onPressEnter={this.handleLoadMore}
+            data-test-id='search-experiment-input'
+            css={classNames.experimentSearchInput}
+          />
+          <SearchIcon
+            onClick={this.handleLoadMore}
+            title='Search/load more experiments'
+            css={classNames.experimentSearchIcon}
+          />
+        </div>
         <div>
-          <div css={classNames.experimentTitleContainer}>
-            <Typography.Title level={2} css={classNames.experimentTitle}>
-              Experiments
-            </Typography.Title>
-            <PlusCircleBorderIcon
-              onClick={this.handleCreateExperiment}
-              css={{
-                fontSize: '24px',
-                marginLeft: 'auto',
-              }}
-              title='New Experiment'
-              data-test-id='create-experiment-button'
-            />
-            <CaretDownSquareIcon
-              onClick={() => this.setState({ hidden: true })}
-              rotate={90}
-              css={{ fontSize: '24px' }}
-              title='Hide experiment list'
-            />
-          </div>
-          <div css={classNames.experimentSearchContainer}>
-            <Input
-              placeholder='Search Experiments'
-              aria-label='search experiments'
-              value={searchInput}
-              onChange={this.handleSearchInputChange}
-              onPressEnter={this.handleLoadMore}
-              data-test-id='search-experiment-input'
-              css={classNames.experimentSearchInput}
-            />
-            <SearchIcon
-              onClick={this.handleLoadMore}
-              title='Search/load more experiments'
-              css={classNames.experimentSearchIcon}
-            />
-          </div>
-          <List split={false} loading={{ indicator: <Spinner />, spinning: loadingMore }}>
-            <VirtualList
-              data={experiments}
-              itemHeight={10}
-              height={innerHeight}
-              itemKey='experiment_id'
-              onScroll={this.debouncedOnScroll}
-              virtual
-              css={classNames.experimentListContainer}
-            >
-              {(item) => this.renderListItem(item)}
-            </VirtualList>
-          </List>
+          <AutoSizer>
+            {({ width, height }) => (
+              <InfiniteLoader
+                isRowLoaded={() => false}
+                loadMoreRows={this.handleLoadMore}
+                rowCount={9999999} // not sure how many to put here
+              >
+                {({ onRowsRendered, registerChild }) => (
+                  <VList
+                    rowRenderer={this.renderListItem}
+                    data={this.state.checkedKeys}
+                    onRowsRendered={onRowsRendered}
+                    ref={registerChild}
+                    rowHeight={30}
+                    overscanRowCount={10}
+                    height={height}
+                    width={width}
+                    rowCount={experiments.length}
+                  />
+                )}
+              </InfiniteLoader>
+            )}
+          </AutoSizer>
         </div>
       </div>
     );
@@ -333,6 +354,7 @@ export class ExperimentListView extends Component {
 const classNames = {
   experimentListOuterContainer: {
     boxSizing: 'border-box',
+    marginTop: '24px',
     marginLeft: '24px',
     marginRight: '8px',
     paddingRight: '16px',
@@ -341,6 +363,8 @@ const classNames = {
     // take more than 20% of the screen.
     minWidth: 'max(280px, 20vw)',
     maxWidth: '20vw',
+    display: 'grid',
+    gridTemplateRows: 'auto auto 1fr',
   },
   experimentTitleContainer: {
     display: 'flex',

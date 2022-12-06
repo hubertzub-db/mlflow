@@ -59,10 +59,7 @@ class HomeView extends Component {
     }
     return (
       <div className='outer-container' style={{ height: containerHeight }}>
-        <div>
-          <Spacer />
-          <ExperimentListView activeExperimentIds={experimentIds || []} />
-        </div>
+        <ExperimentListView activeExperimentIds={experimentIds || []} />
         <PageContainer>
           {hasExperiments ? (
             <React.Suspense fallback={<Skeleton />}>
