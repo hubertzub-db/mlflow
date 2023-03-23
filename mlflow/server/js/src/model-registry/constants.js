@@ -68,7 +68,12 @@ export const ModelVersionStatusIcons = {
 
 export const MODEL_VERSION_STATUS_POLL_INTERVAL = 10000;
 
+// Number of registered models initially shown on the model registry list page
 export const REGISTERED_MODELS_PER_PAGE = 10;
+
+// Variant for compact tables (unified list pattern), this is
+// going to become a default soon
+export const REGISTERED_MODELS_PER_PAGE_COMPACT = 25;
 
 export const MAX_RUNS_IN_SEARCH_MODEL_VERSIONS_FILTER = 75; // request size has a limit of 4KB
 

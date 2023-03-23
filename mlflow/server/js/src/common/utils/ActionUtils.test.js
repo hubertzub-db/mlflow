@@ -11,7 +11,7 @@ import {
 describe('ActionUtils', () => {
   it('getUUID', () => {
     const uuid = getUUID();
-    expect(uuid.length).toEqual(21);
+    expect(uuid.length).toEqual(new Date().getTime().toString().length + 8);
   });
 
   it('apiActionTypes', () => {

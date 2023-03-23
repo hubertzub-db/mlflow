@@ -11,10 +11,18 @@ export class SimplePagination extends React.Component {
     maxResultOptions: PropTypes.array,
     handleSetMaxResult: PropTypes.func,
     getSelectedPerPageSelection: PropTypes.func.isRequired,
+    removeBottomSpacing: PropTypes.bool,
   };
 
   render() {
-    const { currentPage, isLastPage, onClickNext, onClickPrev, maxResultOptions } = this.props;
+    const {
+      currentPage,
+      isLastPage,
+      onClickNext,
+      onClickPrev,
+      maxResultOptions,
+      removeBottomSpacing,
+    } = this.props;
     const numEntries = this.props.getSelectedPerPageSelection();
     let total;
 
@@ -29,7 +37,14 @@ export class SimplePagination extends React.Component {
     }
 
     return (
-      <div className='pagination-section' css={[classNames.wrapper, classNames.paginationOverride]}>
+      <div
+        className='pagination-section'
+        css={[
+          classNames.wrapper,
+          classNames.paginationOverride,
+          removeBottomSpacing && classNames.removeBottomSpacing,
+        ]}
+      >
         <Pagination
           currentPageIndex={currentPage}
           numTotal={total}
@@ -56,6 +71,9 @@ const classNames = {
   wrapper: {
     textAlign: 'right',
     paddingBottom: 30,
+  },
+  removeBottomSpacing: {
+    paddingBottom: 0,
   },
   paginationOverride: {
     // Hide extra page buttons

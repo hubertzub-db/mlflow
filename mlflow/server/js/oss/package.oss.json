@@ -1,0 +1,81 @@
+{
+  "private": true,
+  "engines": {
+    "node": "^16.18.0"
+  },
+  "scripts": {
+    "//": "IMPORTANT: For compatibility with Windows in MLflow OSS, do NOT inline environment variables in scripts other than `start-web`, `start:mfe` and `test:ci`. Environment variables can instead be set in `mlflow/server/js/scripts/global-setup.js`.",
+    "start": "craco start",
+    "build": "craco --max_old_space_size=8192 build",
+    "storybook": "start-storybook -p 6006 -s public",
+    "build-storybook": "build-storybook -s public"
+  },
+  "resolutions": {
+    "@types/react-plotly.js/@types/plotly.js": "^1.54.6"
+  },
+  "dependencies": {
+    "@babel/eslint-parser": "^7.19.1",
+    "@craco/craco": "7.0.0-alpha.0",
+    "@databricks/design-system": "1.12.7",
+    "babel-jest": "^27.5.1",
+    "eslint-config-airbnb-base": "~12.0.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-config-standard": "10.2.1",
+    "eslint-import-resolver-webpack": "0.8.4",
+    "eslint-loader": "2.1.1",
+    "eslint-plugin-chai-expect": "1.1.1",
+    "eslint-plugin-chai-friendly": "^0.7.2",
+    "eslint-plugin-cypress": "^2.12.1",
+    "eslint-plugin-flowtype": "^8.0.3",
+    "eslint-plugin-formatjs": "^3.1.5",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-mocha": "^5.2.1",
+    "eslint-plugin-node": "5.2.1",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-promise": "3.6.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react": "^7.30.0",
+    "eslint-plugin-standard": "3.0.1",
+    "eslint": "^8.25.0",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {
+    "@emotion/babel-plugin": "^11.3.0",
+    "@emotion/babel-preset-css-prop": "^11.2.0",
+    "@emotion/eslint-plugin": "^11.7.0",
+    "@storybook/addon-actions": "^6.5.5",
+    "@storybook/addon-docs": "^6.5.5",
+    "@storybook/addon-essentials": "^6.5.5",
+    "@storybook/addon-links": "^6.5.5",
+    "@storybook/builder-webpack5": "6.5.5",
+    "@storybook/manager-webpack5": "6.5.5",
+    "@storybook/node-logger": "^6.5.5",
+    "@storybook/preset-create-react-app": "^4.1.0",
+    "@storybook/react": "^6.5.5",
+    "babel-plugin-formatjs": "^10.2.14",
+    "babel-plugin-react-require": "^3.1.3",
+    "eslint-plugin-no-only-tests": "^2.6.0",
+    "stream-browserify": "^3.0.0",
+    "webpack": "^5.69.0"
+  },
+  "//": "homepage is hard to configure without resorting to env variables and doesn't play nicely with other webpack settings. This field should be removed.",
+  "homepage": "static-files",
+  "browserslist": ["defaults"],
+  "babel": {
+    "env": {
+      "test": {
+        "plugins": [
+          [
+            "babel-plugin-formatjs",
+            {
+              "idInterpolationPattern": "[sha512:contenthash:base64:6]",
+              "removeDefaultMessage": false
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { isArray } from 'lodash';
 import { SearchExperimentRunsFacetsState } from '../models/SearchExperimentRunsFacetsState';
 
 type PersistSearchSerializeFunctions<Serialized = any, Unserialized = any> = {
@@ -8,9 +9,23 @@ type PersistSearchSerializeFunctions<Serialized = any, Unserialized = any> = {
 };
 
 /**
+ * "Flattens" the strings array, i.e. merges it into a single value
+ */
+const flattenString = (input: string | string[]) => (isArray(input) ? input.join() : input);
+
+/**
  * All known field serialization and deserialization mechanisms used in search facets state persisting mechanism.
  */
 const persistSearchStateFieldSerializers: Record<string, PersistSearchSerializeFunctions> = {
+  /**
+   * In rare cases, search filter might contain commas that interfere with `querystring` library
+   * parsing causing it to return array instead of string. Since it's difficult to selectively
+   * change `querystring`'s parsing action, we are making sure that the parsed values are always strings.
+   */
+  searchFilter: {
+    deserializeLocalStorage: flattenString,
+    deserializeQueryString: flattenString,
+  },
   /**
    * Array of visible configured charts are serialized into base64-encoded JSON when put into query string
    */

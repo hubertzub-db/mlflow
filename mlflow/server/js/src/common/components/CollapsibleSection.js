@@ -37,6 +37,9 @@ const classNames = {
     '.collapsible-panel': {
       position: 'relative',
     },
+    '& > .collapsible-panel > [role="button"]:focus': {
+      outline: 'revert',
+    },
   },
 };
 

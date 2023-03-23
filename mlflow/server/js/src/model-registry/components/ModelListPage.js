@@ -9,19 +9,26 @@ import { getCombinedSearchFilter, constructSearchInputFromURLState } from '../ut
 import {
   AntdTableSortOrder,
   REGISTERED_MODELS_PER_PAGE,
+  REGISTERED_MODELS_PER_PAGE_COMPACT,
   REGISTERED_MODELS_SEARCH_NAME_FIELD,
 } from '../constants';
 import { searchRegisteredModelsApi } from '../actions';
 import LocalStorageUtils from '../../common/utils/LocalStorageUtils';
+import { shouldUseUnifiedListPattern } from '../../common/utils/FeatureUtils';
 
 export class ModelListPageImpl extends React.Component {
   constructor(props) {
     super(props);
+
+    const maxResultsSelection = shouldUseUnifiedListPattern()
+      ? REGISTERED_MODELS_PER_PAGE_COMPACT
+      : REGISTERED_MODELS_PER_PAGE;
+
     this.state = {
       orderByKey: REGISTERED_MODELS_SEARCH_NAME_FIELD,
       orderByAsc: true,
       currentPage: 1,
-      maxResultsSelection: REGISTERED_MODELS_PER_PAGE,
+      maxResultsSelection,
       pageTokens: {},
       loading: false,
       searchInput: constructSearchInputFromURLState(this.getUrlState()),
@@ -90,7 +97,9 @@ export class ModelListPageImpl extends React.Component {
     if (store && store.getItem('max_results')) {
       return parseInt(store.getItem('max_results'), 10);
     } else {
-      return REGISTERED_MODELS_PER_PAGE;
+      return shouldUseUnifiedListPattern()
+        ? REGISTERED_MODELS_PER_PAGE_COMPACT
+        : REGISTERED_MODELS_PER_PAGE;
     }
   }
 

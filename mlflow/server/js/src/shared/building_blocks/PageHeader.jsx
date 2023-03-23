@@ -78,7 +78,12 @@ export function PageHeader({
           </>
         }
       />
-      <Spacer />
+      <Spacer
+        css={{
+          // Ensure spacer's fixed height
+          flexShrink: 0,
+        }}
+      />
     </>
   );
 }

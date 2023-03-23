@@ -283,10 +283,10 @@ export const getJson = (props) => {
 export const postJson = (props) => {
   const { data } = props;
   return fetchEndpoint({
-    ...props,
     method: HTTPMethods.POST,
     body: generateJsonBody(data),
     success: defaultResponseParser,
+    ...props,
   });
 };
 

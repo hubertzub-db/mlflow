@@ -20,12 +20,15 @@ import {
 import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router-dom';
-
+import { ModelListTagsCell, ModelListVersionLinkCell } from './ModelTableCellRenderers';
 import Utils from '../../../common/utils/Utils';
-import type { ModelEntity, ModelInfoEntity } from '../../../experiment-tracking/types';
+import type {
+  KeyValueEntity,
+  ModelEntity,
+  ModelInfoEntity,
+} from '../../../experiment-tracking/types';
 import { Stages } from '../../constants';
 import { getModelPageRoute } from '../../routes';
-import { ModelListVersionLinkCell } from './ModelTableCellRenderers';
 import { CreateModelButton } from '../CreateModelButton';
 
 const getLatestVersionNumberByStage = (latestVersions: ModelInfoEntity[], stage: string) => {
@@ -40,6 +43,7 @@ enum ColumnKeys {
   CREATED_BY = 'user_id',
   STAGE_STAGING = 'stage_staging',
   STAGE_PRODUCTION = 'stage_production',
+  TAGS = 'tags',
 }
 
 export interface ModelListTableProps {
@@ -160,6 +164,18 @@ export const ModelListTable = ({
         cell: ({ getValue }) => <span>{Utils.formatTimestamp(getValue())}</span>,
         meta: { styles: { flex: 1, maxWidth: 150 } },
       },
+      {
+        id: ColumnKeys.TAGS,
+        header: intl.formatMessage({
+          defaultMessage: 'Tags',
+          description: 'Column title for model tags in the registered model page',
+        }),
+        enableSorting: false,
+        accessorKey: 'tags',
+        cell: ({ getValue }) => {
+          return <ModelListTagsCell tags={getValue() as KeyValueEntity[]} />;
+        },
+      },
     ];
 
     return columns;
@@ -241,6 +257,7 @@ export const ModelListTable = ({
         <TableRow isHeader>
           {table.getLeafHeaders().map((header) => (
             <TableHeader
+              ellipsis
               key={header.id}
               sortable={header.column.getCanSort()}
               sortDirection={header.column.getIsSorted() || 'none'}

@@ -29,6 +29,7 @@ class Routes {
   }
 
   static runPageRoute = '/experiments/:experimentId/runs/:runUuid';
+  static directRunPageRoute = '/runs/:runUuid';
 
   static runPageWithArtifactSelectedRoute =
     '/experiments/:experimentId/runs/:runUuid/artifactPath/:initialSelectedArtifactPath*';

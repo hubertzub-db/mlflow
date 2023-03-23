@@ -7,9 +7,13 @@
 
 # testing
 /coverage
+/junit.xml
 
 # production
 /build
+/*.jar
+/*.zip
+/zip-staging-dir
 
 # misc
 .DS_Store

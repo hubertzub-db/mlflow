@@ -25,6 +25,7 @@ import { HomePage } from './HomePage';
 import { MetricPage } from './MetricPage';
 import { PageNotFoundView } from './PageNotFoundView';
 import { RunPage } from './RunPage';
+import { DirectRunPage } from './DirectRunPage';
 
 const isExperimentsActive = (match, location) => {
   // eslint-disable-next-line prefer-const
@@ -111,6 +112,7 @@ class App extends Component {
                   <Route exact path={Routes.experimentPageRoute} component={HomePage} />
                   <Route exact path={Routes.runPageWithArtifactSelectedRoute} component={RunPage} />
                   <Route exact path={Routes.runPageRoute} component={RunPage} />
+                  <Route exact path={Routes.directRunPageRoute} component={DirectRunPage} />
                   <Route exact path={Routes.metricPageRoute} component={MetricPage} />
                   <Route exact path={Routes.compareRunPageRoute} component={CompareRunPage} />
                   <Route

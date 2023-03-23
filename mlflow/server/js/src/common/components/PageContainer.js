@@ -5,7 +5,7 @@ import { PageWrapper, Spacer } from '@databricks/design-system';
 export function PageContainer(props) {
   return (
     <PageWrapper css={props.usesFullHeight ? styles.useFullHeightLayout : styles.wrapper}>
-      <Spacer />
+      <Spacer css={styles.fixedSpacer} />
       {props.usesFullHeight ? props.children : <div {...props} css={styles.container} />}
     </PageWrapper>
   );
@@ -21,8 +21,19 @@ PageContainer.defaultProps = {
 };
 
 const styles = {
-  useFullHeightLayout: { height: '100%', display: 'grid', gridTemplateRows: 'auto auto 1fr' },
+  useFullHeightLayout: {
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    '&:last-child': {
+      flexGrow: 1,
+    },
+  },
   wrapper: { flex: 1 },
+  fixedSpacer: {
+    // Ensure spacer's fixed height regardless of flex
+    flexShrink: 0,
+  },
   container: {
     width: '100%',
     flexGrow: 1,

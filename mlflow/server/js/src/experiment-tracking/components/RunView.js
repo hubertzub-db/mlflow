@@ -205,6 +205,25 @@ export class RunViewImpl extends Component {
     );
   }
 
+  renderUserIdLink = (run, tags, experiment) => {
+    const user = Utils.getUser(run, tags);
+    return <Link to={Routes.searchRunsByUser(experiment.experiment_id, user)}>{user}</Link>;
+  };
+
+  renderLifecycleLink = (experiment) => {
+    const lifecycleStage = this.props.run.getLifecycleStage();
+    return (
+      <Link
+        to={Routes.searchRunsByLifecycleStage(
+          experiment.experiment_id,
+          capitalizeFirstLetter(lifecycleStage),
+        )}
+      >
+        {lifecycleStage}
+      </Link>
+    );
+  };
+
   getExperimentPageLink() {
     return this.props.hasComparedExperimentsBefore ? (
       <Link to={Routes.getCompareExperimentsPageRoute(this.props.comparedExperimentIds)}>
@@ -227,32 +246,11 @@ export class RunViewImpl extends Component {
     );
   }
 
-  renderUserIdLink = () => {
-    const { run, tags, experimentId } = this.props;
-    // TODO: On Databricks, just return `user` instead of a link because MLflow backend on
-    // Databricks does not support searching runs by user.
-    const user = Utils.getUser(run, tags);
-    return <Link to={Routes.searchRunsByUser(experimentId, user)}>{user}</Link>;
-  };
-
-  renderLifecycleLink = () => {
-    const lifecycleStage = this.props.run.getLifecycleStage();
-    return (
-      <Link
-        to={Routes.searchRunsByLifecycleStage(
-          this.props.experimentId,
-          capitalizeFirstLetter(lifecycleStage),
-        )}
-      >
-        {lifecycleStage}
-      </Link>
-    );
-  };
-
   render() {
     const {
       runUuid,
       run,
+      experiment,
       params,
       tags,
       latestMetrics,
@@ -360,7 +358,7 @@ export class RunViewImpl extends Component {
               description: 'Label for displaying the user who created the experiment run',
             })}
           >
-            {this.renderUserIdLink()}
+            {this.renderUserIdLink(run, tags, experiment)}
           </Descriptions.Item>
           {duration ? (
             <Descriptions.Item
@@ -391,7 +389,7 @@ export class RunViewImpl extends Component {
                   'Label for displaying lifecycle stage of the experiment run to see if its active or deleted',
               })}
             >
-              {this.renderLifecycleLink()}
+              {this.renderLifecycleLink(experiment)}
             </Descriptions.Item>
           ) : null}
           {tags['mlflow.parentRunId'] !== undefined ? (

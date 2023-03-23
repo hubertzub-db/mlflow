@@ -114,6 +114,7 @@ export class EditableNoteImpl extends Component {
             onClick={this.handleSubmitClick}
             disabled={!this.contentHasChanged() || confirmLoading}
             loading={confirmLoading}
+            data-testid='editable-note-save-button'
           >
             {this.props.saveText}
           </Button>
@@ -215,6 +216,7 @@ function HTMLNoteContent(props) {
         <div className='note-view-preview note-editor-preview'>
           <div
             className='note-editor-preview-content'
+            data-testid='note-editor-preview-content'
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: props.content }}
           ></div>
