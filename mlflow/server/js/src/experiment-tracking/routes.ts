@@ -9,6 +9,12 @@ export class RoutePaths {
   static get experimentObservatory() {
     return createMLflowRoutePath('/experiments');
   }
+  static get promptsPage() {
+    return createMLflowRoutePath('/prompts');
+  }
+  static get promptDetailsPage() {
+    return createMLflowRoutePath('/prompts/:promptId');
+  }
   static get experimentPage() {
     return createMLflowRoutePath('/experiments/:experimentId');
   }
@@ -59,6 +65,14 @@ class Routes {
 
   static get experimentPageSearchRoute() {
     return RoutePaths.experimentPageSearch;
+  }
+
+  static get promptsPageRoute() {
+    return RoutePaths.promptsPage;
+  }
+
+  static getPromptDetailsPageRoute(promptId: string) {
+    return generatePath(RoutePaths.promptDetailsPage, { promptId });
   }
 
   static getExperimentPageRoute(experimentId: string, isComparingRuns = false, shareState?: string) {

@@ -37,4 +37,14 @@ export const getRouteDefs = () => [
     element: createLazyRouteElement(() => import('./components/MetricPage')),
     pageId: 'mlflow.metric.details',
   },
+  {
+    path: RoutePaths.promptsPage,
+    element: createLazyRouteElement(() => import('./pages/prompts/PromptsPage')),
+    pageId: 'mlflow.prompts',
+  },
+  {
+    path: RoutePaths.promptDetailsPage,
+    element: createLazyRouteElement(() => import('./pages/prompts/PromptsDetailsPage')),
+    pageId: 'mlflow.prompts.details',
+  },
 ];
