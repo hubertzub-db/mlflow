@@ -69,6 +69,7 @@ const previewComponentsMap: Record<
   [RunsChartType.SCATTER]: RunsChartsConfigureScatterChartPreview,
   [RunsChartType.DIFFERENCE]: DifferenceViewPlot,
   [RunsChartType.IMAGE]: RunsChartsConfigureImageChartPreview,
+  [RunsChartType.OVERVIEW]: () => <div />,
 };
 
 export const RunsChartsConfigureModal = ({

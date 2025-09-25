@@ -26,6 +26,7 @@ import { RunsChartsDifferenceChartCard } from './RunsChartsDifferenceChartCard';
 import type { RunsGroupByConfig } from '../../../experiment-page/utils/experimentPage.group-row-utils';
 import { RunsChartsImageChartCard } from './RunsChartsImageChartCard';
 import type { RunsChartsGlobalLineChartConfig } from '../../../experiment-page/models/ExperimentPageUIState';
+import { RunsChartsOverviewChartCard } from './RunsChartsOverviewChartCard';
 
 export interface RunsChartsCardProps
   extends RunsChartCardReorderProps,
@@ -72,6 +73,30 @@ const RunsChartsCardRaw = ({
   isInViewport,
   isInViewportDeferred,
 }: RunsChartsCardProps) => {
+  const propz = {
+    cardConfig,
+    chartRunData,
+    index,
+    sectionIndex,
+    onStartEditChart,
+    onRemoveChart,
+    setFullScreenChart,
+    groupBy,
+    fullScreen,
+    canMoveDown,
+    canMoveUp,
+    previousChartUuid,
+    nextChartUuid,
+    onReorderWith,
+    autoRefreshEnabled,
+    onDownloadFullMetricHistoryCsv,
+    hideEmptyCharts,
+    globalLineChartConfig,
+    height,
+    isInViewport,
+    isInViewportDeferred,
+  };
+
   const reorderProps = useMemo(
     () => ({
       onReorderWith,
@@ -141,6 +166,10 @@ const RunsChartsCardRaw = ({
         {...commonChartProps}
       />
     );
+  }
+
+  if (cardConfig.type === RunsChartType.OVERVIEW) {
+    return <RunsChartsOverviewChartCard config={cardConfig as any} chartRunData={chartRunData} {...commonChartProps} />;
   }
 
   if (cardConfig.type === RunsChartType.DIFFERENCE) {

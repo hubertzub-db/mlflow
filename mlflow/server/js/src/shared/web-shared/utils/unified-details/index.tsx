@@ -4,6 +4,8 @@ import { useRef } from 'react';
 import { FormattedMessage } from 'react-intl';
 import useResponsiveContainer from './useResponsiveContainer';
 
+export * from './ContentSection';
+
 export interface AsideSectionProps {
   id: string;
   title?: ReactNode;

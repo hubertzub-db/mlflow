@@ -1,8 +1,8 @@
-import { gql, NetworkStatus } from '@mlflow/mlflow/src/common/utils/graphQLHooks';
+import { gql, NetworkStatus, useApolloClient } from '@mlflow/mlflow/src/common/utils/graphQLHooks';
 import { useQuery } from '@mlflow/mlflow/src/common/utils/graphQLHooks';
 import { EXPERIMENT_RUNS_METRIC_AUTO_REFRESH_INTERVAL } from '../../../utils/MetricsUtils';
 import { groupBy, keyBy } from 'lodash';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import type { SampledMetricsByRun } from './useSampledMetricHistory';
 import type { GetMetricHistoryBulkInterval } from '../../../../graphql/__generated__/graphql';
 import Utils from '../../../../common/utils/Utils';
@@ -121,4 +121,173 @@ export const useSampledMetricHistoryGraphQL = ({
     error,
     apiError: data?.mlflowGetMetricHistoryBulkInterval?.apiError,
   };
+};
+
+export const useSampledMetricHistoryGraphQLLazy = () => {
+  const intl = useIntl();
+  const client = useApolloClient();
+
+  const doQuery = useCallback(
+    ({
+      metricKeys,
+      runUuids,
+      autoRefreshEnabled,
+      enabled,
+      maxResults = 320,
+      range,
+    }: {
+      runUuids: string[];
+      metricKeys: string[];
+      maxResults?: number;
+      range?: [number, number];
+      enabled?: boolean;
+      autoRefreshEnabled?: boolean;
+    }) => {
+      const promises = metricKeys.map((metricKey) => ({
+        promise: client.query({
+          query: GET_METRIC_HISTORY_BULK_INTERVAL,
+          variables: {
+            data: {
+              runIds: runUuids,
+              metricKey,
+              startStep: range?.[0] ?? null,
+              endStep: range?.[1] ?? null,
+              maxResults,
+            },
+          },
+        }),
+        metricKey,
+      }));
+
+      return Promise.all(promises.map(({ promise }) => promise)).then((responses) => {
+        const combinedResultsByRunUuid: Record<string, SampledMetricsByRun> = {};
+        responses.forEach((response, index) => {
+          const metricKey = promises[index].metricKey;
+          if (response.data.mlflowGetMetricHistoryBulkInterval?.apiError?.code === 'RESOURCE_DOES_NOT_EXIST') {
+            Utils.displayGlobalErrorNotification(
+              intl.formatMessage({
+                defaultMessage: 'Requested resource does not exist',
+                description:
+                  'Error message displayed when a requested run does not exist while fetching sampled metric data',
+              }),
+            );
+          } else if (response.data.mlflowGetMetricHistoryBulkInterval?.apiError?.message) {
+            Utils.logErrorAndNotifyUser(new Error(response.data.mlflowGetMetricHistoryBulkInterval.apiError.message));
+          } else {
+            const metrics = response.data?.mlflowGetMetricHistoryBulkInterval?.metrics;
+            const metricsByRunId = groupBy(metrics, 'runId');
+
+            // Transform the data into the already existing format
+            const resultsByRunUuid: Record<string, SampledMetricsByRun> = keyBy(
+              runUuids.map(
+                (runId) =>
+                  ({
+                    runUuid: runId,
+                    [metricKey]: {
+                      metricsHistory: metricsByRunId[runId]?.map(({ key, step, timestamp, value }) => ({
+                        key: key ?? undefined,
+                        step: Number(step),
+                        timestamp: Number(timestamp),
+                        value: value ?? undefined,
+                      })),
+                    },
+                  } as SampledMetricsByRun),
+              ),
+              'runUuid',
+            );
+
+            Object.entries(resultsByRunUuid).forEach(([runUuid, metricData]) => {
+              if (!combinedResultsByRunUuid[runUuid]) {
+                // @ts-ignore
+                combinedResultsByRunUuid[runUuid] = { runUuid };
+              }
+              combinedResultsByRunUuid[runUuid][metricKey] = metricData[metricKey];
+            });
+          }
+        });
+        return combinedResultsByRunUuid;
+      });
+    },
+    [client, intl],
+  );
+
+  return doQuery;
+
+  // const { data, refetch, startPolling, stopPolling, networkStatus, error } = useQuery<GetMetricHistoryBulkInterval>(
+  //   GET_METRIC_HISTORY_BULK_INTERVAL,
+  //   {
+  //     skip: !enabled,
+  //     notifyOnNetworkStatusChange: true,
+  //     pollInterval: autoRefreshEnabled ? EXPERIMENT_RUNS_METRIC_AUTO_REFRESH_INTERVAL : undefined,
+  //     onCompleted(data) {
+  //       if (data.mlflowGetMetricHistoryBulkInterval?.apiError?.code === 'RESOURCE_DOES_NOT_EXIST') {
+  //         Utils.displayGlobalErrorNotification(
+  //           intl.formatMessage({
+  //             defaultMessage: 'Requested resource does not exist',
+  //             description:
+  //               'Error message displayed when a requested run does not exist while fetching sampled metric data',
+  //           }),
+  //         );
+  //       } else if (data.mlflowGetMetricHistoryBulkInterval?.apiError?.message) {
+  //         Utils.logErrorAndNotifyUser(new Error(data.mlflowGetMetricHistoryBulkInterval.apiError.message));
+  //       }
+  //     },
+  //     variables: {
+  //       data: {
+  //         runIds: runUuids,
+  //         metricKey,
+  //         startStep: range?.[0] ?? null,
+  //         endStep: range?.[1] ?? null,
+  //         maxResults,
+  //       },
+  //     },
+  //   },
+  // );
+
+  // useEffect(() => {
+  //   if (autoRefreshEnabled) {
+  //     startPolling(EXPERIMENT_RUNS_METRIC_AUTO_REFRESH_INTERVAL);
+  //   } else {
+  //     stopPolling();
+  //   }
+  // }, [autoRefreshEnabled, startPolling, stopPolling]);
+
+  // const resultsByRunUuid = useMemo<Record<string, SampledMetricsByRun>>(() => {
+  //   if (data) {
+  //     const metrics = data?.mlflowGetMetricHistoryBulkInterval?.metrics;
+  //     const metricsByRunId = groupBy(metrics, 'runId');
+
+  //     // Transform the data into the already existing format
+  //     return keyBy(
+  //       runUuids.map(
+  //         (runId) =>
+  //           ({
+  //             runUuid: runId,
+  //             [metricKey]: {
+  //               metricsHistory: metricsByRunId[runId]?.map(({ key, step, timestamp, value }) => ({
+  //                 key: key ?? undefined,
+  //                 step: Number(step),
+  //                 timestamp: Number(timestamp),
+  //                 value: value ?? undefined,
+  //               })),
+  //             },
+  //           } as SampledMetricsByRun),
+  //       ),
+  //       'runUuid',
+  //     );
+  //   }
+
+  //   return {};
+  // }, [data, metricKey, runUuids]);
+
+  // const isLoading = networkStatus === NetworkStatus.loading || networkStatus === NetworkStatus.setVariables;
+  // const isRefreshing = networkStatus === NetworkStatus.poll;
+  // return {
+  //   resultsByRunUuid,
+  //   isLoading,
+  //   isRefreshing,
+  //   refresh: refetch,
+  //   error,
+  //   apiError: data?.mlflowGetMetricHistoryBulkInterval?.apiError,
+  // };
 };

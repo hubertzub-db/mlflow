@@ -35,12 +35,12 @@ export const RunsChartsFilterInput = ({ chartsSearchFilter }: { chartsSearchFilt
           {searching ? <Spinner size="small" /> : <SearchIcon />}
         </div>
       }
-      value={inputValue}
+      value={chartsSearchFilter}
       allowClear
       onChange={(e) => {
         setInputValue(e.target.value);
         setSearching(true);
-        updateChartFilterDebounced(e.target.value);
+        updateChartFilter(e.target.value);
       }}
       placeholder={formatMessage({
         defaultMessage: 'Search metric charts',

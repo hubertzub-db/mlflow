@@ -24,6 +24,7 @@ export enum RunsChartType {
   PARALLEL = 'PARALLEL',
   DIFFERENCE = 'DIFFERENCE',
   IMAGE = 'IMAGE',
+  OVERVIEW = 'OVERVIEW',
 }
 
 const MIN_NUMBER_OF_STEP_FOR_LINE_COMPARISON = 1;
@@ -451,6 +452,12 @@ export class RunsChartsScatterCardConfig extends RunsChartsCardConfig {
   xaxis: RunsChartAxisDef = { key: '', type: 'METRIC' };
   yaxis: RunsChartAxisDef = { key: '', type: 'METRIC' };
   runsCountToCompare = 100;
+}
+
+// TODO: add configuration fields relevant to scatter chart
+export class RunsChartsMetricsOverviewCardConfig extends RunsChartsCardConfig {
+  type: RunsChartType.OVERVIEW = RunsChartType.OVERVIEW;
+  mode: 'gpu' | 'cpu' = 'gpu';
 }
 
 export interface ChartRange {

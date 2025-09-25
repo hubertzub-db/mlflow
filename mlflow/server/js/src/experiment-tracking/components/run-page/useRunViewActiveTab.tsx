@@ -17,6 +17,9 @@ export const useRunViewActiveTab = (): RunPageTabName => {
   if (tabParam === 'evaluations') {
     return RunPageTabName.EVALUATIONS;
   }
+  if (tabParam === 'sgc-logs') {
+    return RunPageTabName.SGC_LOGS;
+  }
   if (tabParam === 'traces') {
     return RunPageTabName.TRACES;
   }

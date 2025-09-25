@@ -30,11 +30,20 @@ import type { RunsChartsGlobalLineChartConfig } from '../../../experiment-page/m
 
 const chartMatchesFilter = (filter: string, config: RunsChartsCardConfig) => {
   // Use regexp-based filtering if a feature flag is enabled
+  if (config.type === RunsChartType.OVERVIEW) {
+    return !filter;
+  }
+
+  // Use regexp-based filtering if a feature flag is enabled
   if (config.type === RunsChartType.IMAGE || config.type === RunsChartType.DIFFERENCE) {
     return true;
   }
 
   try {
+    if (filter.startsWith('chart:')) {
+      const parsedFilter = filter.replace(/^chart\:/, '');
+      return getChartMetricsAndParams(config).some((metricOrParam) => metricOrParam === parsedFilter);
+    }
     const filterRegex = new RegExp(filter, 'i');
     return getChartMetricsAndParams(config).some((metricOrParam) => metricOrParam.match(filterRegex));
   } catch {
@@ -371,25 +380,49 @@ export const RunsChartsSectionAccordion = ({
             return !config.deleted && section === sectionConfig.uuid;
           });
 
+          if (sectionConfig.uuid === 'overview') {
+            return (
+              <RunsChartsSection
+                sectionId={sectionConfig.uuid}
+                sectionConfig={sectionConfig}
+                sectionCharts={sectionCharts}
+                reorderCharts={reorderCharts}
+                insertCharts={insertCharts}
+                isMetricHistoryLoading={isMetricHistoryLoading}
+                chartData={chartData}
+                startEditChart={startEditChart}
+                removeChart={removeChart}
+                groupBy={groupBy}
+                sectionIndex={index}
+                setFullScreenChart={setFullScreenChart}
+                autoRefreshEnabled={autoRefreshEnabled}
+                hideEmptyCharts={hideEmptyCharts}
+                globalLineChartConfig={globalLineChartConfig}
+              />
+            );
+          }
+
           return (
             <Accordion.Panel
               header={
-                <RunsChartsSectionHeader
-                  index={index}
-                  section={sectionConfig}
-                  onDeleteSection={deleteSection}
-                  onAddSection={addSection}
-                  editSection={editSection}
-                  onSetEditSection={setEditSection}
-                  onSetSectionName={setSectionName}
-                  sectionChartsLength={sectionCharts.length}
-                  addNewChartCard={addNewChartCard}
-                  onSectionReorder={sectionReorder}
-                  isExpanded={activeKey.includes(sectionConfig.uuid)}
-                  supportedChartTypes={supportedChartTypes}
-                  // When searching, hide the section placement controls
-                  hideExtraControls={isSearching}
-                />
+                sectionConfig.uuid === 'overview' ? null : (
+                  <RunsChartsSectionHeader
+                    index={index}
+                    section={sectionConfig}
+                    onDeleteSection={deleteSection}
+                    onAddSection={addSection}
+                    editSection={editSection}
+                    onSetEditSection={setEditSection}
+                    onSetSectionName={setSectionName}
+                    sectionChartsLength={sectionCharts.length}
+                    addNewChartCard={addNewChartCard}
+                    onSectionReorder={sectionReorder}
+                    isExpanded={activeKey.includes(sectionConfig.uuid)}
+                    supportedChartTypes={supportedChartTypes}
+                    // When searching, hide the section placement controls
+                    hideExtraControls={isSearching}
+                  />
+                )
               }
               key={sectionConfig.uuid}
               aria-hidden={!activeKey.includes(sectionConfig.uuid)}

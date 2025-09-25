@@ -33,6 +33,7 @@ import { getGraphQLErrorMessage } from '../../../graphql/get-graphql-error';
 import { useLoggedModelsForExperimentRun } from '../experiment-page/hooks/useLoggedModelsForExperimentRun';
 import { useLoggedModelsForExperimentRunV2 } from '../experiment-page/hooks/useLoggedModelsForExperimentRunV2';
 import { getExperimentKindFromTags } from '../../utils/ExperimentKindUtils';
+import { RunViewSgcLogsTab } from './sgc-logs/RunViewSgcLogsTab';
 
 const RunPageLoadingState = () => (
   <PageContainer>
@@ -174,6 +175,8 @@ export const RunPage = () => {
             artifactUri={runInfo.artifactUri ?? undefined}
           />
         );
+      case RunPageTabName.SGC_LOGS:
+        return <RunViewSgcLogsTab runUuid={runUuid} runTags={tags} />;
       case RunPageTabName.TRACES:
         return renderEvaluationTab();
     }

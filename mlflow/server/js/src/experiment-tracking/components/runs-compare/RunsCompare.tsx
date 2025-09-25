@@ -1,56 +1,57 @@
 import { TableSkeleton, useDesignSystemTheme } from '@databricks/design-system';
+import type { ReduxState } from '@mlflow/mlflow/src/redux-types';
+import { keyBy, values } from 'lodash';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { useSelector } from 'react-redux';
-import type { MetricEntitiesByName, ChartSectionConfig, ImageEntity } from '../../types';
 import type { KeyValueEntity } from '../../../common/types';
-import { RunsChartsCardConfig } from '../runs-charts/runs-charts.types';
-import type { RunsChartType } from '../runs-charts/runs-charts.types';
-import { type SerializedRunsChartsCardConfigCard } from '../runs-charts/runs-charts.types';
-import { RunsChartsConfigureModal } from '../runs-charts/components/RunsChartsConfigureModal';
-import { isEmptyChartCard, type RunsChartsRunData } from '../runs-charts/components/RunsCharts.common';
 import {
   AUTOML_EVALUATION_METRIC_TAG,
   LOG_IMAGE_TAG_INDICATOR,
   MLFLOW_EXPERIMENT_PRIMARY_METRIC_NAME,
 } from '../../constants';
-import { RunsChartsTooltipBody } from '../runs-charts/components/RunsChartsTooltipBody';
-import { RunsChartsTooltipWrapper } from '../runs-charts/hooks/useRunsChartsTooltip';
+import type { ChartSectionConfig, ImageEntity, MetricEntitiesByName } from '../../types';
 import { useUpdateExperimentViewUIState } from '../experiment-page/contexts/ExperimentPageUIStateContext';
+import { useGetExperimentRunColor } from '../experiment-page/hooks/useExperimentRunColor';
+import { usePopulateImagesByRunUuid } from '../experiment-page/hooks/usePopulateImagesByRunUuid';
+import { useToggleRowVisibilityCallback } from '../experiment-page/hooks/useToggleRowVisibilityCallback';
 import {
   type ExperimentPageUIState,
   RUNS_VISIBILITY_MODE,
   type RunsChartsGlobalLineChartConfig,
 } from '../experiment-page/models/ExperimentPageUIState';
-import type { RunRowType } from '../experiment-page/utils/experimentPage.row-types';
-import { RunsChartsSectionAccordion } from '../runs-charts/components/sections/RunsChartsSectionAccordion';
-import type { ReduxState } from '@mlflow/mlflow/src/redux-types';
-import { SearchIcon } from '@databricks/design-system';
-import { Input } from '@databricks/design-system';
-import { useIntl } from 'react-intl';
 import {
-  type RunsGroupByConfig,
   getRunGroupDisplayName,
   isRemainingRunsGroup,
   normalizeRunsGroupByKey,
+  type RunsGroupByConfig,
 } from '../experiment-page/utils/experimentPage.group-row-utils';
-import { keyBy, values } from 'lodash';
-import {
-  type RunsChartsUIConfigurationSetter,
-  RunsChartsUIConfigurationContextProvider,
-  useUpdateRunsChartsUIConfiguration,
-  useReorderRunsChartsFn,
-  useInsertRunsChartsFn,
-  useRemoveRunsChartFn,
-  useConfirmChartCardConfigurationFn,
-} from '../runs-charts/hooks/useRunsChartsUIConfiguration';
-import { useToggleRowVisibilityCallback } from '../experiment-page/hooks/useToggleRowVisibilityCallback';
-import { RunsChartsFullScreenModal } from '../runs-charts/components/RunsChartsFullScreenModal';
-import { usePopulateImagesByRunUuid } from '../experiment-page/hooks/usePopulateImagesByRunUuid';
-import { useGetExperimentRunColor } from '../experiment-page/hooks/useExperimentRunColor';
-import { RunsChartsGlobalChartSettingsDropdown } from '../runs-charts/components/RunsChartsGlobalChartSettingsDropdown';
+import type { RunRowType } from '../experiment-page/utils/experimentPage.row-types';
+import { isEmptyChartCard, type RunsChartsRunData } from '../runs-charts/components/RunsCharts.common';
+import { RunsChartsConfigureModal } from '../runs-charts/components/RunsChartsConfigureModal';
 import { RunsChartsDraggableCardsGridContextProvider } from '../runs-charts/components/RunsChartsDraggableCardsGridContext';
 import { RunsChartsFilterInput } from '../runs-charts/components/RunsChartsFilterInput';
+import { RunsChartsFullScreenModal } from '../runs-charts/components/RunsChartsFullScreenModal';
+import { RunsChartsGlobalChartSettingsDropdown } from '../runs-charts/components/RunsChartsGlobalChartSettingsDropdown';
+import { RunsChartsTooltipBody } from '../runs-charts/components/RunsChartsTooltipBody';
+import { RunsChartsSectionAccordion } from '../runs-charts/components/sections/RunsChartsSectionAccordion';
+import { RunsChartsTooltipWrapper } from '../runs-charts/hooks/useRunsChartsTooltip';
+import {
+  RunsChartsUIConfigurationContextProvider,
+  type RunsChartsUIConfigurationSetter,
+  useConfirmChartCardConfigurationFn,
+  useInsertRunsChartsFn,
+  useRemoveRunsChartFn,
+  useReorderRunsChartsFn,
+  useUpdateRunsChartsUIConfiguration,
+} from '../runs-charts/hooks/useRunsChartsUIConfiguration';
+import type { RunsChartType } from '../runs-charts/runs-charts.types';
+import {
+  RunsChartsCardConfig,
+  RunsChartsMetricsOverviewCardConfig,
+  type SerializedRunsChartsCardConfigCard,
+} from '../runs-charts/runs-charts.types';
 import { RUNS_CHARTS_UI_Z_INDEX } from '../runs-charts/utils/runsCharts.const';
 
 export interface RunsCompareProps {
@@ -144,8 +145,8 @@ const RunsCompareImpl = ({
   metricKeyList,
   paramKeyList,
   experimentTags,
-  compareRunCharts,
-  compareRunSections,
+  compareRunCharts: compareRunChartsOriginal,
+  compareRunSections: compareRunSectionsOriginal,
   groupBy,
   autoRefreshEnabled,
   hideEmptyCharts,
@@ -159,6 +160,27 @@ const RunsCompareImpl = ({
 
   // Updater function for charts UI state
   const updateChartsUIState = useUpdateRunsChartsUIConfiguration();
+
+  const compareRunSections = useMemo<ChartSectionConfig[]>(() => {
+    return [
+      {
+        display: true,
+        isReordered: false,
+        name: 'Overview',
+        uuid: 'overview',
+      },
+      ...(compareRunSectionsOriginal ?? []),
+    ];
+  }, [compareRunSectionsOriginal]);
+
+  const compareRunCharts = useMemo<RunsChartsCardConfig[]>(() => {
+    const met: RunsChartsMetricsOverviewCardConfig = new RunsChartsMetricsOverviewCardConfig(
+      false,
+      'overviewchart',
+      'overview',
+    );
+    return [met, ...(compareRunChartsOriginal ?? [])];
+  }, [compareRunChartsOriginal]);
 
   const { paramsByRunUuid, latestMetricsByRunUuid, tagsByRunUuid, imagesByRunUuid } = useSelector(
     (state: ReduxState) => ({
